@@ -25,3 +25,5 @@ source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 pytest -v
 
+## Improvements
+- Improved validation logic and test coverage
