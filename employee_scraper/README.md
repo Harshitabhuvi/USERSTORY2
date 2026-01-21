@@ -12,7 +12,7 @@ Scrapes employee data from a Google Drive file and validates it before ingestion
 ## ▶️ How to Run the Project
 ```bash
 python -m scraper.main
-pytest -v
+python -m unittest discover -s tests -v
 
 
 ---
@@ -23,7 +23,7 @@ pytest -v
 python -m venv venv
 source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-pytest -v
+python -m unittest discover -s tests -v
 
 ## Improvements
 - Improved validation logic and test coverage
