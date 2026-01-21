@@ -2,7 +2,7 @@
 import re
 from employee_scraper.config import REQUIRED_FIELDS
 
-EMAIL_REGEX = r"[^@]+@[^@]+\.[^@]+"
+EMAIL_REGEX = r"[^@]+@[^@]+\.[^@]+"   #Ensures correct formats.
 PHONE_REGEX = r"^\+?\d{7,15}$"
 
 def validate_record(record: dict) -> list:
@@ -35,4 +35,4 @@ def validate_record(record: dict) -> list:
         if str(sex).strip().lower() not in ["male", "female", "other"]:
             errors.append("Invalid sex value")
 
-    return errors
+    return errors   #Returns list of all validation issues.

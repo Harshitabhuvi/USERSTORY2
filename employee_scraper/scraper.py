@@ -4,7 +4,7 @@ import os
 import time
 import re
 import requests
-import pandas as pd
+import pandas as pd        #Needed for: HTTP calls,CSV parsing,Retry delay,Regex validation
 from employee_scraper.logger import logger
 from employee_scraper.config import MAX_RETRIES, SUPPORTED_FORMATS, REQUIRED_FIELDS
 from employee_scraper.validator import validate_record
@@ -41,11 +41,12 @@ def download_file(url: str, output_name="employee_data"):
                 ext = "csv"
                 logger.warning("Could not detect file type from headers. Defaulting to CSV.")
 
-            file_path = f"{output_name}.{ext}"
+            os.makedirs("data", exist_ok=True)
+            file_path = os.path.join("data", f"{output_name}.{ext}")
 
             # Write content
             with open(file_path, "wb") as f:
-                for chunk in response.iter_content(chunk_size=32768):
+                for chunk in response.iter_content(chunk_size=32768):    #Writes file chunk-by-chunk.
                     if chunk:
                         f.write(chunk)
 
@@ -60,11 +61,11 @@ def download_file(url: str, output_name="employee_data"):
 
 
 def parse_file(file_path: str) -> pd.DataFrame:
-    ext = file_path.split(".")[-1].lower()
-    if ext not in SUPPORTED_FORMATS:
+    ext = file_path.split(".")[-1].lower()         #Extracts file extension.
+    if ext not in SUPPORTED_FORMATS:        #Prevents invalid files
         raise ValueError(f"Unsupported file format: {ext}")
 
-    df = pd.read_csv(file_path) if ext == "csv" else pd.read_excel(file_path)
+    df = pd.read_csv(file_path) if ext == "csv" else pd.read_excel(file_path)     #Reads file into DataFrame.
 
     # Strip whitespace from headers only
     df.columns = [col.strip() for col in df.columns]
@@ -89,7 +90,7 @@ def process_employee_data(df: pd.DataFrame):
     invalid_records = []
 
     for _, row in df.iterrows():
-        record = {k: row.get(k) for k in REQUIRED_FIELDS}
+        record = {k: row.get(k) for k in REQUIRED_FIELDS}    #Maps row to required schema.
 
         # --- AUTO-CORRECTIONS for main CSV ---
         # Correct sex field
@@ -114,15 +115,19 @@ def process_employee_data(df: pd.DataFrame):
         if errors:
             invalid_records.append({"record": record, "errors": errors})
         else:
-            valid_records.append(record)
+            valid_records.append(record)    #Final strict validation.
 
     # Save CSVs
     if valid_records:
-        pd.DataFrame(valid_records).to_csv("valid_employee_data.csv", index=False)
+        pd.DataFrame(valid_records).to_csv(
+    os.path.join("data", "valid_employee_data.csv"),
+    index=False
+)    #Stores output.
     if invalid_records:
         pd.DataFrame([r["record"] for r in invalid_records]).to_csv(
-            "invalid_employee_data.csv", index=False
-        )
+    os.path.join("data", "invalid_employee_data.csv"),
+    index=False
+)
 
     logger.info(f"Valid records: {len(valid_records)}")
     logger.info(f"Invalid records: {len(invalid_records)}")
